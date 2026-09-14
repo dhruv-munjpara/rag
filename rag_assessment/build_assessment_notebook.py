@@ -1,0 +1,283 @@
+import json
+
+notebook_content = {
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Modules 17–18: Prompt Engineering & Retrieval-Augmented Generation (RAG) Assessment\n",
+    "**Assessment Code**: M18-A1  \n",
+    "**Student Name**: Dhruv Munjpara  \n",
+    "**Enrollment / Student ID**: 8849162891  \n",
+    "**Course**: Data Science & AI Master Program — TOPS Technologies  \n",
+    "\n",
+    "---\n",
+    "\n",
+    "## Executive Summary & Notebook Index\n",
+    "This master notebook contains the complete solution for the official **Prompt Engineering & Retrieval-Augmented Generation (RAG) Assessment (M18-A1)** centered on a real-world **QuickBite Food Delivery Platform** AI assistant scenario.\n",
+    "\n",
+    "- [Section A — Concept Application (Scenarios S1 to S6)](#section-a)\n",
+    "- [Section B — Practical Coding Tasks (Tasks 1 to 4)](#section-b)\n",
+    "  - [Task 1: Structured Prompt Builder + Input Validation](#task-1)\n",
+    "  - [Task 2: Few-Shot Complaint Classifier Prompt Builder](#task-2)\n",
+    "  - [Task 3: Semantic Search Over Restaurant FAQs with FAISS](#task-3)\n",
+    "  - [Task 4: Complete RAG Policy Q&A Pipeline](#task-4)\n",
+    "- [Section C — Mini Capstone Project: Interactive Support Console](#section-c)\n",
+    "- [Section D — AI-Augmented Learning (Prompts, Bug Fixes & Code Diffs)](#section-d)\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<a id='section-a'></a>\n",
+    "# Section A — Concept Application (Scenarios S1 – S6)\n",
+    "\n",
+    "### Scenario S1: Prompt Clarity & Consistency in Support Chatbots\n",
+    "- **Unclear vs Clear Prompt**: Unclear prompts leave decision criteria vague, causing inconsistent refund decisions. Clear prompts specify support agent persona, deterministic IF-THEN refund rules, and strict length/format limits.\n",
+    "- **Change 1 (Decision Rule Matrix)**: Added explicit rules for missing items, late deliveries, and escalation criteria to eliminate subjective LLM interpretation.\n",
+    "- **Change 2 (Output Schema & Max Length)**: Added max 80 words constraint and 2-sentence response structure to prevent unauthorized promises.\n",
+    "\n",
+    "### Scenario S2: Zero-Shot vs Few-Shot Complaint Classifier\n",
+    "- **Comparison**: Zero-shot uses minimal context but struggles with ambiguous complaints. Few-shot uses 4–8 concrete exemplar pairs, significantly improving edge-case precision within context limits.\n",
+    "- **Justification**: Few-shot is chosen because 4–8 balanced examples consume only ~200 tokens while providing explicit patterns for classifying ambiguous complaints across 4 categories (`Late Delivery`, `Wrong Item`, `Missing Item`, `Poor Quality`).\n",
+    "\n",
+    "### Scenario S3: Chain-of-Thought (CoT) Route Optimization\n",
+    "- **CoT Improvement**: Decomposes multi-variable stop sequence calculation into intermediate reasoning steps (priority grouping -> traffic delay calculation -> distance optimization).\n",
+    "- **Limitation**: Higher token generation increases API latency and inference cost for real-time dispatch systems.\n",
+    "\n",
+    "### Scenario S4: RAG vs Fine-Tuning for 150-Page Policy Handbook\n",
+    "- **Justification for RAG**: (1) Quarterly handbook updates require seconds in RAG (vector database update) vs expensive GPU retraining in Fine-Tuning; (2) RAG guarantees zero hallucinations by citing exact policy paragraphs.\n",
+    "- **Fine-Tuning Superiority**: Fine-tuning is better for teaching specialized domain vocabulary or custom XML/JSON syntax formatting.\n",
+    "\n",
+    "### Scenario S5: Chunking Parameters for 500 PDF Menus\n",
+    "- **Chunk Size & Overlap**: Increased chunk size to 250 words with 50-word overlap to ensure dish names and price blocks stay unified across chunk boundaries.\n",
+    "- **Trade-off**: Slightly higher vector storage and context token usage per query.\n",
+    "\n",
+    "### Scenario S6: Vector Store Comparison (FAISS vs ChromaDB)\n",
+    "- **FAISS vs ChromaDB**: FAISS offers ultra-fast in-memory vector search but lacks easy metadata deletion. ChromaDB supports native document updates and metadata filtering (`status == 'active'`).\n",
+    "- **Required Step**: Automated metadata pre-filtering and deletion synchronization pipeline."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<a id='section-b'></a>\n",
+    "# Section B — Practical Coding Tasks\n",
+    "\n",
+    "<a id='task-1'></a>\n",
+    "### Task 1: Structured Prompt Builder + Input Validation"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": None,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Task 1 Code\n",
+    "ALLOWED_ISSUE_TYPES = {'late delivery', 'missing item', 'wrong item'}\n",
+    "\n",
+    "def validate_issue_type(issue_type: str) -> str:\n",
+    "    normalized = issue_type.strip().lower()\n",
+    "    if normalized not in ALLOWED_ISSUE_TYPES:\n",
+    "        raise ValueError(f\"Invalid issue_type '{issue_type}'. Must be one of {sorted(ALLOWED_ISSUE_TYPES)}\")\n",
+    "    return normalized\n",
+    "\n",
+    "def generate_support_prompt(customer_name: str, order_id: str, issue_type: str):\n",
+    "    try:\n",
+    "        valid_issue = validate_issue_type(issue_type)\n",
+    "        system_prompt = (\n",
+    "            \"System: You are an AI Support Agent for QuickBite Food Delivery. \"\n",
+    "            \"Assist customers professionally. Max response length: 80 words.\"\n",
+    "        )\n",
+    "        user_prompt = (\n",
+    "            f\"Customer: {customer_name} | Order: {order_id} | Issue: {valid_issue.title()}\"\n",
+    "        )\n",
+    "        print(f\"--- SYSTEM PROMPT ---\\n{system_prompt}\")\n",
+    "        print(f\"--- USER PROMPT ---\\n{user_prompt}\\n\")\n",
+    "    except ValueError as e:\n",
+    "        print(f\"❌ ERROR: {e}\\n\")\n",
+    "\n",
+    "# Test cases\n",
+    "generate_support_prompt(\"Rahul Sharma\", \"QB-98421\", \"late delivery\")\n",
+    "generate_support_prompt(\"Priya Patel\", \"QB-77104\", \"missing item\")\n",
+    "generate_support_prompt(\"Amit Kumar\", \"QB-55412\", \"rude driver\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<a id='task-2'></a>\n",
+    "### Task 2: Few-Shot Complaint Classifier Prompt Builder"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": None,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Task 2 Code\n",
+    "FEW_SHOT_EXAMPLES = [\n",
+    "    {\"input\": \"My pizza arrived 50 minutes late.\", \"output\": \"Late Delivery\"},\n",
+    "    {\"input\": \"I received a Chicken Burger instead of Paneer Wrap.\", \"output\": \"Wrong Item\"},\n",
+    "    {\"input\": \"The delivery bag was missing the garlic bread.\", \"output\": \"Missing Item\"},\n",
+    "    {\"input\": \"The soup spilled all over and was cold.\", \"output\": \"Poor Quality\"}\n",
+    "]\n",
+    "\n",
+    "def add_example(text: str, label: str):\n",
+    "    FEW_SHOT_EXAMPLES.append({\"input\": text, \"output\": label})\n",
+    "\n",
+    "def build_few_shot_prompt(complaint: str) -> str:\n",
+    "    prompt = \"System: Classify into 'Late Delivery', 'Wrong Item', 'Missing Item', or 'Poor Quality'.\\n\\n\"\n",
+    "    for ex in FEW_SHOT_EXAMPLES:\n",
+    "        prompt += f\"Input: \\\"{ex['input']}\\\"\\nOutput: {ex['output']}\\n\\n\"\n",
+    "    prompt += f\"Input: \\\"{complaint}\\\"\\nOutput:\"\n",
+    "    return prompt\n",
+    "\n",
+    "print(build_few_shot_prompt(\"My order was missing 2 tacos.\"))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<a id='task-3'></a>\n",
+    "### Task 3: Semantic Search Over Restaurant FAQs with FAISS"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": None,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Task 3 Code\n",
+    "import faiss\n",
+    "import numpy as np\n",
+    "from sentence_transformers import SentenceTransformer\n",
+    "\n",
+    "FAQ_DATASET = [\n",
+    "    \"FAQ 1: Standard delivery time is 30 to 45 minutes.\",\n",
+    "    \"FAQ 2: Orders can be cancelled within 60 seconds of submission.\",\n",
+    "    \"FAQ 3: Full refunds are issued for missing items within 3 to 5 days.\",\n",
+    "    \"FAQ 4: Out of stock items will trigger a call for substitution.\",\n",
+    "    \"FAQ 5: Contact 24/7 customer support via app Help live chat.\",\n",
+    "    \"FAQ 6: Free delivery minimum order is ₹200 for regular members.\"\n",
+    "]\n",
+    "\n",
+    "st_model = SentenceTransformer('all-MiniLM-L6-v2')\n",
+    "faq_embs = st_model.encode(FAQ_DATASET).astype(np.float32)\n",
+    "\n",
+    "faiss_idx = faiss.IndexFlatL2(faq_embs.shape[1])\n",
+    "faiss_idx.add(faq_embs)\n",
+    "\n",
+    "def search_faq(query: str, k: int = 2):\n",
+    "    q_v = st_model.encode([query]).astype(np.float32)\n",
+    "    distances, indices = faiss_idx.search(q_v, k)\n",
+    "    return [(FAQ_DATASET[idx], float(distances[0][r])) for r, idx in enumerate(indices[0])]\n",
+    "\n",
+    "print(\"Search Result for 'How do I get money back?':\")\n",
+    "for faq, dist in search_faq(\"How do I get money back?\", k=2):\n",
+    "    print(f\" Dist: {dist:.4f} | {faq}\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<a id='task-4'></a>\n",
+    "### Task 4: Complete RAG Policy Q&A Pipeline"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": None,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Task 4 Code\n",
+    "POLICY_DOC = \"\"\"\n",
+    "QuickBite Policy Handbook: Customers can cancel free within 60 seconds before restaurant confirmation. \n",
+    "Refunds for missing items are credited to original payment within 3 to 5 business days or instant wallet cash. \n",
+    "Wrong item deliveries receive 100% refund plus ₹50 voucher upon photo proof within 2 hours. \n",
+    "Delays over 45 minutes receive ₹100 delay credit compensation.\n",
+    "\"\"\"\n",
+    "\n",
+    "words = POLICY_DOC.split()\n",
+    "policy_chunks = [\" \".join(words[i:i+40]) for i in range(0, len(words), 30)]\n",
+    "p_embs = st_model.encode(policy_chunks).astype(np.float32)\n",
+    "p_faiss = faiss.IndexFlatL2(p_embs.shape[1])\n",
+    "p_faiss.add(p_embs)\n",
+    "\n",
+    "def build_rag_prompt(query: str, k: int = 2):\n",
+    "    q_v = st_model.encode([query]).astype(np.float32)\n",
+    "    D, I = p_faiss.search(q_v, k)\n",
+    "    retrieved = [policy_chunks[idx] for idx in I[0]]\n",
+    "    \n",
+    "    prompt = (\n",
+    "        \"System: Answer ONLY using provided context below. If missing, say 'I don't know.'\\n\\n\"\n",
+    "        f\"Context: {' '.join(retrieved)}\\n\\n\"\n",
+    "        f\"Question: {query}\\n\\nAnswer:\"\n",
+    "    )\n",
+    "    return prompt\n",
+    "\n",
+    "print(build_rag_prompt(\"What is the refund policy for missing items?\"))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<a id='section-c'></a>\n",
+    "# Section C — Mini Capstone Project: Interactive Helpdesk Support Console\n",
+    "*(See standalone file `Section_C_Mini_Capstone/mini_capstone_helpdesk.py` for full CLI app)*"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": None,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Execute Non-Interactive Test of Mini Capstone\n",
+    "import subprocess\n",
+    "res = subprocess.run([\"python\", \"Section_C_Mini_Capstone/mini_capstone_helpdesk.py\", \"--test\"], capture_output=True, text=True)\n",
+    "print(res.stdout)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<a id='section-d'></a>\n",
+    "# Section D — AI-Augmented Learning (Report & Code Fixes)\n",
+    "\n",
+    "### AI Prompt Submitted:\n",
+    "> *\"Write a Python script using SentenceTransformers, FAISS, and PyPDF2 that loads a refund policy PDF, chunks text, builds a vector index, retrieves top chunks, and creates an LLM RAG prompt with a while loop.\"*\n",
+    "\n",
+    "### 4 Critical Bug Fixes Implemented:\n",
+    "1. **Word-Boundary Chunking**: Fixed character slicing `[i:i+200]` cutting words mid-sentence.\n",
+    "2. **Index Boundary Guard**: Added `k = min(k, len(chunks))` to stop FAISS out-of-bounds crashes.\n",
+    "3. **Fallback Instruction**: Injected strict context grounding and fallback constraint (`\"Say 'I don't know' if missing\"`).\n",
+    "4. **Sanitized Input Loop**: Replaced rigid `user_input == \"quit\"` with `user_input.strip().lower() in [\"quit\", \"exit\", \"\"]`."
+   ]
+  }
+ ],
+ "metadata": {
+  "language_info": {
+   "name": "python"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}
+
+with open("d:/DA&DS/rag/RAG_Assessment_Master_Notebook.ipynb", "w", encoding="utf-8") as f:
+    json.dump(notebook_content, f, indent=1)
+
+print("Created RAG_Assessment_Master_Notebook.ipynb successfully!")

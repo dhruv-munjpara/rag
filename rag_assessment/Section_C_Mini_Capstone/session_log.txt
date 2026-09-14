@@ -1,0 +1,2 @@
+[2026-09-14 16:41:48] | MODE: RAG Policy Q&A       | INPUT: "What is the refund rule for missing items?" | OUTPUT: "Retrieved 3 chunks"
+[2026-09-14 16:41:48] | MODE: Few-Shot Classifier  | INPUT: "My pizza arrived 2 hours late and was cold." | OUTPUT: "Predicted: Late Delivery"

@@ -1,0 +1,16 @@
+QuickBite Enterprise Food Delivery Platform — Operations & Policy Handbook 2026
+
+CHAPTER 1: ORDER PLACEMENT AND CANCELLATION RULES
+Customers may place food delivery orders using the QuickBite mobile app or official web portal. Once an order is placed, a 60-second grace period is granted during which the order may be cancelled without incurring any cancellation fees, provided the restaurant merchant has not formally confirmed the order ticket. If a customer requests cancellation after restaurant confirmation but prior to courier driver assignment, a standard cancellation fee equal to 50% of the item total will be charged to cover prepared ingredients. After a courier driver has been dispatched or picked up the food parcel, orders cannot be cancelled and no monetary refund will be issued.
+
+CHAPTER 2: REFUNDS, MISSING ITEMS, AND WRONG DISH POLICIES
+QuickBite is committed to high quality standards. If an order is delivered with missing items, the customer must report the missing items within 2 hours of order receipt through the Help section of the app. Upon confirmation, a 100% refund for the value of the missing items will be issued to the customer's original payment card within 3 to 5 business days, or instantly as QuickBite Cash balance. In the event of receiving a wrong item, customers must upload a clear photo of the incorrect item. Verified wrong item complaints receive a full refund of the affected dish plus a ₹50 goodwill promotional discount voucher valid for 30 days.
+
+CHAPTER 3: DELIVERY SLA GUARANTEES AND LATE ARRIVAL COMPENSATION
+Standard delivery times range from 30 to 45 minutes depending on distance, traffic conditions, and kitchen workload. QuickBite guarantees an SLA arrival window displayed at checkout. If a delivery arrives more than 45 minutes past the estimated ETA due to driver or platform logistics failure, the account will automatically receive a ₹100 late arrival compensation credit. SLA guarantees do not apply during extreme weather emergencies, flooding, or official municipal curfews.
+
+CHAPTER 4: PACKAGING DAMAGE AND FOOD HYGIENE DISPUTES
+If food containers arrive damaged, leaking, or with compromised hygiene seals, customers must refrain from consuming the food and submit at least two photos of the damaged package within 90 minutes of delivery. Upon automated image verification, QuickBite will issue an immediate full order refund or arrange an expedited free replacement delivery from the merchant.
+
+CHAPTER 5: SUBSCRIPTION MEMBERSHIPS AND PROMOTIONAL DISCOUNTS
+QuickBite Gold subscribers enjoy unlimited free delivery on all orders exceeding ₹199, priority customer support routing, and exclusive 15% discounts at partner restaurants. Promotional codes cannot be combined with existing Gold subscription discounts unless explicitly stated during promotional campaigns.
